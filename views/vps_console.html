@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPX PANEL - VPS Console</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #e4e4e7; }
+        .glass { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(39, 39, 42, 1); }
+        .terminal { background: #000; font-family: 'JetBrains Mono', monospace; color: #0f0; padding: 20px; border-radius: 12px; height: 500px; overflow-y: auto; }
+    </style>
+</head>
+<body class="p-10 max-w-5xl mx-auto">
+    <header class="mb-10 flex items-center justify-between">
+        <div>
+            <a href="/vps/<%= container.id %>" class="text-emerald-500 hover:text-emerald-400 mb-4 inline-block"><i class="fas fa-arrow-left mr-2"></i> Back to Instance</a>
+            <h1 class="text-3xl font-bold text-white">Interactive Console</h1>
+            <p class="text-zinc-500 mt-1">Direct access to <%= container.name %></p>
+        </div>
+        <div class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold text-sm">
+            <i class="fas fa-circle mr-2 animate-pulse"></i> CONNECTED
+        </div>
+    </header>
+
+    <div class="terminal shadow-2xl border border-zinc-800">
+        <div class="mb-4 text-zinc-500">RPX Panel Terminal v1.0.0</div>
+        <div class="mb-2">root@<%= container.name %>:~# <span class="animate-pulse">_</span></div>
+        <div class="text-zinc-400 mt-10">
+            [SYSTEM] Container <%= container.name %> started successfully.<br>
+            [SYSTEM] SSH service listening on port 22.<br>
+            [SYSTEM] IPv4: <%= container.ipv4 %><br>
+            [SYSTEM] Welcome to Ubuntu 22.04.3 LTS (GNU/Linux 5.15.0-generic x86_64)
+        </div>
+    </div>
+
+    <div class="mt-6 flex space-x-4">
+        <input type="text" placeholder="Type a command..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none font-mono">
+        <button class="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-8 py-3 rounded-xl font-bold">Send</button>
+    </div>
+</body>
+</html>

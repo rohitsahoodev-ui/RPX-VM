@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPX PANEL - Billing</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #e4e4e7; }
+        .glass { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(39, 39, 42, 1); }
+    </style>
+</head>
+<body class="p-10 max-w-6xl mx-auto">
+    <header class="mb-10">
+        <a href="/dashboard" class="text-emerald-500 hover:text-emerald-400 mb-4 inline-block"><i class="fas fa-arrow-left mr-2"></i> Dashboard</a>
+        <h1 class="text-4xl font-bold text-white">Billing & Payments</h1>
+        <p class="text-zinc-500 mt-2">Manage your balance and view transaction history.</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+        <div class="glass p-8 rounded-3xl md:col-span-1">
+            <h4 class="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-2">Current Balance</h4>
+            <p class="text-5xl font-bold text-white mb-6">$<%= user.balance.toFixed(2) %></p>
+            <button class="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
+                Add Funds
+            </button>
+        </div>
+        <div class="glass p-8 rounded-3xl md:col-span-2">
+            <h4 class="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-4">Payment Methods</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fab fa-cc-visa text-2xl text-blue-500"></i>
+                        <span class="text-sm font-bold">•••• 4242</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Default</span>
+                </div>
+                <button class="p-4 rounded-2xl border-2 border-dashed border-zinc-800 text-zinc-500 hover:border-emerald-500/50 hover:text-emerald-500 transition-all">
+                    <i class="fas fa-plus mr-2"></i> Add New
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass rounded-3xl overflow-hidden">
+        <div class="p-8 border-b border-zinc-800">
+            <h3 class="text-lg font-bold text-white">Transaction History</h3>
+        </div>
+        <table class="w-full text-left">
+            <thead>
+                <tr class="text-xs font-bold text-zinc-500 uppercase tracking-widest border-b border-zinc-800">
+                    <th class="px-8 py-4">Date</th>
+                    <th class="px-8 py-4">Description</th>
+                    <th class="px-8 py-4">Amount</th>
+                    <th class="px-8 py-4">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800">
+                <tr class="hover:bg-zinc-800/30 transition-colors">
+                    <td class="px-8 py-5 text-sm text-zinc-500">Feb 28, 2026</td>
+                    <td class="px-8 py-5 text-sm font-bold text-white">VPS Renewal - my-vps-01</td>
+                    <td class="px-8 py-5 text-sm text-red-400">-$2.50</td>
+                    <td class="px-8 py-5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">PAID</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

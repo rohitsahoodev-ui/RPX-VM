@@ -1,0 +1,9 @@
+{
+  "name": "RPX PANEL",
+  "description": "Enterprise-grade LXC Container VPS Control Panel with real-time monitoring, billing, and advanced management features.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

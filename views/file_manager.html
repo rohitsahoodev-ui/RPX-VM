@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPX PANEL - File Manager</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #e4e4e7; }
+        .glass { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(39, 39, 42, 1); }
+    </style>
+</head>
+<body class="p-10 max-w-6xl mx-auto">
+    <header class="mb-10 flex items-center justify-between">
+        <div>
+            <a href="/vps/<%= vpsId %>" class="text-emerald-500 hover:text-emerald-400 mb-4 inline-block"><i class="fas fa-arrow-left mr-2"></i> Back</a>
+            <h1 class="text-3xl font-bold text-white">File Manager</h1>
+            <p class="text-zinc-500 mt-1">/root/var/www/html</p>
+        </div>
+        <div class="flex space-x-3">
+            <button class="glass px-4 py-2 rounded-xl text-sm font-bold hover:bg-zinc-800 transition-all"><i class="fas fa-upload mr-2"></i> Upload</button>
+            <button class="bg-emerald-500 text-zinc-950 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all"><i class="fas fa-plus mr-2"></i> New File</button>
+        </div>
+    </header>
+
+    <div class="glass rounded-3xl overflow-hidden">
+        <div class="p-4 bg-zinc-900/50 border-b border-zinc-800 flex items-center space-x-4">
+            <button class="text-zinc-500 hover:text-white"><i class="fas fa-chevron-left"></i></button>
+            <button class="text-zinc-500 hover:text-white"><i class="fas fa-chevron-right"></i></button>
+            <div class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1 text-sm text-zinc-400">/root/var/www/html</div>
+        </div>
+        <table class="w-full text-left">
+            <thead>
+                <tr class="text-xs font-bold text-zinc-500 uppercase tracking-widest border-b border-zinc-800">
+                    <th class="px-8 py-4">Name</th>
+                    <th class="px-8 py-4">Size</th>
+                    <th class="px-8 py-4">Modified</th>
+                    <th class="px-8 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800">
+                <tr class="hover:bg-zinc-800/30 transition-colors">
+                    <td class="px-8 py-4 flex items-center space-x-3">
+                        <i class="fas fa-folder text-amber-500"></i>
+                        <span class="text-sm font-bold text-white">logs</span>
+                    </td>
+                    <td class="px-8 py-4 text-sm text-zinc-500">--</td>
+                    <td class="px-8 py-4 text-sm text-zinc-500">2 hours ago</td>
+                    <td class="px-8 py-4 text-right text-zinc-500"><i class="fas fa-ellipsis-v"></i></td>
+                </tr>
+                <tr class="hover:bg-zinc-800/30 transition-colors">
+                    <td class="px-8 py-4 flex items-center space-x-3">
+                        <i class="fas fa-file-code text-blue-500"></i>
+                        <span class="text-sm font-bold text-white">index.php</span>
+                    </td>
+                    <td class="px-8 py-4 text-sm text-zinc-500">12 KB</td>
+                    <td class="px-8 py-4 text-sm text-zinc-500">5 mins ago</td>
+                    <td class="px-8 py-4 text-right text-zinc-500"><i class="fas fa-ellipsis-v"></i></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

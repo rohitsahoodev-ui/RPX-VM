@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPX PANEL - Admin Nodes</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #e4e4e7; }
+        .glass { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(39, 39, 42, 1); }
+    </style>
+</head>
+<body class="p-10 max-w-7xl mx-auto">
+    <header class="mb-10 flex items-center justify-between">
+        <div>
+            <a href="/admin" class="text-emerald-500 hover:text-emerald-400 mb-4 inline-block"><i class="fas fa-arrow-left mr-2"></i> Admin Panel</a>
+            <h1 class="text-4xl font-bold text-white">Node Infrastructure</h1>
+            <p class="text-zinc-500 mt-2">Monitor and configure host servers.</p>
+        </div>
+        <button class="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20">
+            Add Node
+        </button>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <% nodes.forEach(n => { %>
+        <div class="glass p-8 rounded-3xl">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                        <i class="fas fa-server text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white"><%= n.name %></h3>
+                        <p class="text-xs text-zinc-500 uppercase tracking-widest font-bold"><%= n.location %> • <%= n.ip %></p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">ONLINE</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-zinc-800/50 p-4 rounded-2xl">
+                    <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">RAM Usage</p>
+                    <p class="text-lg font-bold text-white">4.2 / <%= n.max_ram %> MB</p>
+                    <div class="w-full bg-zinc-900 h-1.5 rounded-full mt-2 overflow-hidden"><div class="bg-emerald-500 h-full" style="width: 25%"></div></div>
+                </div>
+                <div class="bg-zinc-800/50 p-4 rounded-2xl">
+                    <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">CPU Cores</p>
+                    <p class="text-lg font-bold text-white">2 / <%= n.max_cpu %> Cores</p>
+                    <div class="w-full bg-zinc-900 h-1.5 rounded-full mt-2 overflow-hidden"><div class="bg-blue-500 h-full" style="width: 25%"></div></div>
+                </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-all">Configure</button>
+                <button class="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-3 rounded-xl transition-all"><i class="fas fa-terminal"></i></button>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+</body>
+</html>

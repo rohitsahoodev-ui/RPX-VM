@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}VPS Created{% endblock %}
+{% block content %}
+<div class="p-10 text-center">
+    <div class="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto border border-emerald-500/20 shadow-2xl shadow-emerald-500/10 mb-6">
+        <i class="fas fa-check text-4xl"></i>
+    </div>
+    <h1 class="text-3xl font-bold">VPS Successfully Created!</h1>
+    <p class="text-zinc-500 mt-2">Your instance is being deployed. You will receive an email shortly.</p>
+    <a href="/dashboard" class="inline-block bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-8 py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 mt-8">
+        Go to Dashboard
+    </a>
+</div>
+{% endblock %}
