@@ -1,19 +1,30 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from flask_socketio import SocketIO, emit
-import sqlite3
-import bcrypt
-import jwt
-import datetime
 import os
 import random
 import string
+import datetime
+import sqlite3
+import bcrypt
+import jwt
+import psutil
 from functools import wraps
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask_socketio import SocketIO, emit
+from dotenv import load_dotenv
 
-app = Flask(__name__)
+# Load environment variables
+load_dotenv()
+
+# Set absolute path for templates to prevent TemplateNotFound
+base_dir = os.path.abspath(os.path.dirname(__file__))
+template_dir = os.path.join(base_dir, 'templates')
+static_dir = os.path.join(base_dir, 'static')
+
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.config['SECRET_KEY'] = os.getenv('JWT_SECRET', 'rpx_panel_secret_python_777')
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 DB_PATH = os.getenv('DB_PATH', 'rpx_panel.db')
+LOG_FILE = 'rpx_panel.log'
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -170,6 +181,71 @@ def api_create_container(current_user):
     new_id = cursor.lastrowid
     db.close()
     return jsonify({"id": new_id})
+
+# --- System Monitoring API ---
+@app.route('/api/system/stats')
+@token_required
+def get_system_stats(current_user):
+    if current_user['role'] != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    stats = {
+        "cpu_usage": psutil.cpu_percent(interval=1),
+        "ram_usage": psutil.virtual_memory().percent,
+        "disk_usage": psutil.disk_usage('/').percent,
+        "uptime": datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S"),
+        "containers_count": 0,
+        "users_count": 0
+    }
+    
+    db = get_db()
+    stats["containers_count"] = db.execute("SELECT COUNT(*) FROM containers").fetchone()[0]
+    stats["users_count"] = db.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    db.close()
+    
+    return jsonify(stats)
+
+@app.route('/api/vps/<int:id>/action', methods=['POST'])
+@token_required
+def vps_action(current_user, id):
+    data = request.json
+    action = data.get('action') # start, stop, restart, kill
+    
+    db = get_db()
+    container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
+    
+    if not container:
+        db.close()
+        return jsonify({"error": "VPS not found"}), 404
+    
+    # Mocking LXC command execution
+    new_status = 'running' if action in ['start', 'restart'] else 'stopped'
+    db.execute("UPDATE containers SET status = ? WHERE id = ?", (new_status, id))
+    db.commit()
+    db.close()
+    
+    # Log the action
+    with open(LOG_FILE, 'a') as f:
+        f.write(f"[{datetime.datetime.now()}] User {current_user['email']} performed {action} on VPS {container['name']}\n")
+        
+    return jsonify({"success": True, "status": new_status})
+
+# --- Billing & Balance ---
+@app.route('/api/user/add-balance', methods=['POST'])
+@token_required
+def add_balance(current_user):
+    data = request.json
+    amount = float(data.get('amount', 0))
+    
+    if amount <= 0:
+        return jsonify({"error": "Invalid amount"}), 400
+        
+    db = get_db()
+    db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", (amount, current_user['id']))
+    db.commit()
+    db.close()
+    
+    return jsonify({"success": True, "new_balance": current_user['balance'] + amount})
 
 # --- Socket.io ---
 @socketio.on('get_vps_stats')
