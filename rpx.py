@@ -84,7 +84,12 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = request.args.get('token') or request.headers.get('Authorization')
         if not token:
+            # Check session for token if not in headers/args
+            token = session.get('token')
+            
+        if not token:
             return redirect(url_for('login'))
+            
         try:
             if 'Bearer ' in token:
                 token = token.split(' ')[1]
@@ -92,6 +97,8 @@ def token_required(f):
             db = get_db()
             current_user = db.execute("SELECT * FROM users WHERE id = ?", (data['id'],)).fetchone()
             db.close()
+            if not current_user:
+                return redirect(url_for('login'))
         except:
             return redirect(url_for('login'))
         return f(current_user, *args, **kwargs)
@@ -125,7 +132,7 @@ def create_vps(current_user):
     db = get_db()
     nodes = db.execute("SELECT * FROM nodes WHERE status = 'online'").fetchall()
     db.close()
-    return render_template('create_vps.html', nodes=nodes)
+    return render_template('create_vps.html', user=current_user, nodes=nodes)
 
 @app.route('/vps/<int:id>')
 @token_required
@@ -135,7 +142,27 @@ def vps_details(current_user, id):
     db.close()
     if not container:
         return "Not Found", 404
-    return render_template('vps_details.html', container=container)
+    return render_template('vps_details.html', user=current_user, container=container)
+
+@app.route('/billing')
+@token_required
+def billing(current_user):
+    return render_template('billing.html', user=current_user)
+
+@app.route('/admin')
+@token_required
+def admin(current_user):
+    if current_user['role'] != 'admin':
+        return redirect(url_for('dashboard'))
+    db = get_db()
+    nodes = db.execute("SELECT * FROM nodes").fetchall()
+    db.close()
+    return render_template('admin.html', user=current_user, nodes=nodes)
+
+@app.route('/referral')
+@token_required
+def referral(current_user):
+    return render_template('referral.html', user=current_user)
 
 # --- API ---
 
@@ -150,8 +177,8 @@ def api_register():
         db.commit()
         db.close()
         return jsonify({"success": True})
-    except:
-        return jsonify({"error": "User already exists"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/api/auth/login', methods=['POST'])
 def api_login():
@@ -173,16 +200,19 @@ def api_create_container(current_user):
     data = request.json
     ipv4 = f"10.0.0.{random.randint(2, 254)}"
     db = get_db()
-    cursor = db.execute("""
-        INSERT INTO containers (name, user_id, node_id, ipv4, cpu, ram, disk, os, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'running')
-    """, (data['name'], current_user['id'], data['node_id'], ipv4, data['cpu'], data['ram'], data['disk'], data['os']))
-    db.commit()
-    new_id = cursor.lastrowid
-    db.close()
-    return jsonify({"id": new_id})
+    try:
+        cursor = db.execute("""
+            INSERT INTO containers (name, user_id, node_id, ipv4, cpu, ram, disk, os, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'running')
+        """, (data['name'], current_user['id'], data['node_id'], ipv4, data['cpu'], data['ram'], data['disk'], data['os']))
+        db.commit()
+        new_id = cursor.lastrowid
+        db.close()
+        return jsonify({"id": new_id})
+    except Exception as e:
+        db.close()
+        return jsonify({"error": str(e)}), 400
 
-# --- System Monitoring API ---
 @app.route('/api/system/stats')
 @token_required
 def get_system_stats(current_user):
@@ -190,7 +220,7 @@ def get_system_stats(current_user):
         return jsonify({"error": "Unauthorized"}), 403
     
     stats = {
-        "cpu_usage": psutil.cpu_percent(interval=1),
+        "cpu_usage": psutil.cpu_percent(interval=None),
         "ram_usage": psutil.virtual_memory().percent,
         "disk_usage": psutil.disk_usage('/').percent,
         "uptime": datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S"),
@@ -209,7 +239,7 @@ def get_system_stats(current_user):
 @token_required
 def vps_action(current_user, id):
     data = request.json
-    action = data.get('action') # start, stop, restart, kill
+    action = data.get('action')
     
     db = get_db()
     container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
@@ -218,19 +248,16 @@ def vps_action(current_user, id):
         db.close()
         return jsonify({"error": "VPS not found"}), 404
     
-    # Mocking LXC command execution
     new_status = 'running' if action in ['start', 'restart'] else 'stopped'
     db.execute("UPDATE containers SET status = ? WHERE id = ?", (new_status, id))
     db.commit()
     db.close()
     
-    # Log the action
     with open(LOG_FILE, 'a') as f:
         f.write(f"[{datetime.datetime.now()}] User {current_user['email']} performed {action} on VPS {container['name']}\n")
         
     return jsonify({"success": True, "status": new_status})
 
-# --- Billing & Balance ---
 @app.route('/api/user/add-balance', methods=['POST'])
 @token_required
 def add_balance(current_user):
@@ -245,7 +272,7 @@ def add_balance(current_user):
     db.commit()
     db.close()
     
-    return jsonify({"success": True, "new_balance": current_user['balance'] + amount})
+    return jsonify({"success": True})
 
 # --- Socket.io ---
 @socketio.on('get_vps_stats')
