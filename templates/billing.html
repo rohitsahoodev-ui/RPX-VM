@@ -1,126 +1,92 @@
 {% extends "base.html" %}
 
-{% block title %}Billing{% endblock %}
-{% block header_title %}Financial Overview{% endblock %}
+{% block title %}Billing & Credits{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Balance Card -->
-    <div class="lg:col-span-1 space-y-6">
-        <div class="glass p-8 rounded-3xl border border-zinc-800 bg-gradient-to-br from-emerald-500/10 to-transparent">
-            <div class="flex items-center justify-between mb-8">
-                <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                    <i class="fas fa-wallet text-zinc-950 text-xl"></i>
-                </div>
-                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Current Balance</span>
-            </div>
-            <h2 class="text-4xl font-bold text-white mb-2">${{ "%.2f"|format(user.balance) }}</h2>
-            <p class="text-xs text-zinc-500 font-medium mb-8">Credits available for instance deployment</p>
-            <button onclick="document.getElementById('addBalanceModal').classList.remove('hidden')" class="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]">
-                Add Credits
-            </button>
-        </div>
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-white">Billing & Credits</h1>
+    <p class="text-sm text-gray-500">Manage your account balance and view transaction history.</p>
+</div>
 
-        <div class="glass p-6 rounded-3xl border border-zinc-800">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-6">Pricing Plans</h3>
-            <div class="space-y-4">
-                <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-bold text-white">Nano Node</span>
-                        <span class="text-xs font-bold text-emerald-500">$2.50/mo</span>
-                    </div>
-                    <p class="text-[10px] text-zinc-500">1 vCPU • 512MB RAM • 10GB SSD</p>
-                </div>
-                <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-bold text-white">Pro Node</span>
-                        <span class="text-xs font-bold text-emerald-500">$10.00/mo</span>
-                    </div>
-                    <p class="text-[10px] text-zinc-500">2 vCPU • 4GB RAM • 50GB SSD</p>
-                </div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <div class="card p-8 bg-gradient-to-br from-emerald-600/10 to-transparent border-emerald-500/20">
+        <div class="flex items-center justify-between mb-6">
+            <div class="w-12 h-12 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-xl">
+                <i class="fas fa-wallet"></i>
             </div>
+            <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Available Balance</span>
         </div>
+        <p class="text-4xl font-bold text-white mb-2">${{ "%.2f"|format(user.balance) }}</p>
+        <p class="text-xs text-gray-500">Your credits are automatically deducted for active servers.</p>
     </div>
 
-    <!-- Transaction History -->
-    <div class="lg:col-span-2">
-        <div class="glass rounded-3xl border border-zinc-800 overflow-hidden">
-            <div class="px-8 py-6 border-b border-zinc-800 bg-zinc-900/50">
-                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Transaction History</h3>
+    <div class="lg:col-span-2 card p-8">
+        <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Add Credits</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <button onclick="setAmount(5)" class="p-4 rounded-lg bg-gray-900 border border-gray-800 text-white hover:border-blue-500 transition-all text-center">
+                <p class="text-lg font-bold">$5</p>
+                <p class="text-[10px] text-gray-500 uppercase">Credits</p>
+            </button>
+            <button onclick="setAmount(10)" class="p-4 rounded-lg bg-gray-900 border border-gray-800 text-white hover:border-blue-500 transition-all text-center">
+                <p class="text-lg font-bold">$10</p>
+                <p class="text-[10px] text-gray-500 uppercase">Credits</p>
+            </button>
+            <button onclick="setAmount(25)" class="p-4 rounded-lg bg-gray-900 border border-gray-800 text-white hover:border-blue-500 transition-all text-center">
+                <p class="text-lg font-bold">$25</p>
+                <p class="text-[10px] text-gray-500 uppercase">Credits</p>
+            </button>
+            <button onclick="setAmount(50)" class="p-4 rounded-lg bg-gray-900 border border-gray-800 text-white hover:border-blue-500 transition-all text-center">
+                <p class="text-lg font-bold">$50</p>
+                <p class="text-[10px] text-gray-500 uppercase">Credits</p>
+            </button>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <input type="number" id="customAmount" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 pl-8 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all" placeholder="Enter custom amount">
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest bg-zinc-900/30">
-                            <th class="px-8 py-4">Date</th>
-                            <th class="px-8 py-4">Description</th>
-                            <th class="px-8 py-4">Amount</th>
-                            <th class="px-8 py-4">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-800/50">
-                        <tr class="hover:bg-zinc-800/30 transition-colors">
-                            <td class="px-8 py-4 text-xs text-zinc-400">2026-02-28 10:45</td>
-                            <td class="px-8 py-4 text-xs font-bold text-white">Initial Credit Deposit</td>
-                            <td class="px-8 py-4 text-xs font-bold text-emerald-500">+$10.00</td>
-                            <td class="px-8 py-4">
-                                <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Completed</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <button onclick="addBalance()" class="btn-primary px-8 py-3">Add Balance</button>
         </div>
     </div>
 </div>
 
-<!-- Add Balance Modal -->
-<div id="addBalanceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-    <div class="w-full max-w-md glass rounded-3xl p-8 border border-zinc-800 shadow-2xl">
-        <div class="flex items-center justify-between mb-8">
-            <h3 class="text-xl font-bold text-white">Add Credits</h3>
-            <button onclick="document.getElementById('addBalanceModal').classList.add('hidden')" class="text-zinc-500 hover:text-white transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
+<div class="card overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-800 bg-gray-900/30">
+        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Transaction History</h3>
+    </div>
+    <div class="p-12 text-center">
+        <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-2xl text-gray-600 mx-auto mb-4">
+            <i class="fas fa-history"></i>
         </div>
-        <div class="space-y-6">
-            <div>
-                <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 ml-1">Amount to Deposit ($)</label>
-                <input type="number" id="amount" value="10" min="1" class="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-bold">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <button class="p-4 rounded-2xl bg-zinc-900 border border-emerald-500/30 bg-emerald-500/5 flex flex-col items-center gap-2 group">
-                    <i class="fab fa-stripe text-2xl text-emerald-500"></i>
-                    <span class="text-[10px] font-bold text-white uppercase tracking-widest">Stripe</span>
-                </button>
-                <button class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-blue-500/30 hover:bg-blue-500/5 flex flex-col items-center gap-2 group transition-all">
-                    <i class="fab fa-paypal text-2xl text-zinc-500 group-hover:text-blue-500"></i>
-                    <span class="text-[10px] font-bold text-zinc-500 group-hover:text-white uppercase tracking-widest">PayPal</span>
-                </button>
-            </div>
-            <button onclick="addBalance()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]">
-                Proceed to Payment
-            </button>
-        </div>
+        <p class="text-sm text-gray-400">No transactions found in your history.</p>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    function setAmount(val) {
+        document.getElementById('customAmount').value = val;
+    }
+
     async function addBalance() {
-        const amount = document.getElementById('amount').value;
-        const token = localStorage.getItem('token');
+        const amount = document.getElementById('customAmount').value;
+        if (!amount || amount <= 0) return alert('Please enter a valid amount.');
+
         const res = await fetch('/api/user/add-balance', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             },
             body: JSON.stringify({ amount })
         });
         const data = await res.json();
         if (data.success) {
+            alert('Balance added successfully!');
             location.reload();
         } else {
             alert(data.error);

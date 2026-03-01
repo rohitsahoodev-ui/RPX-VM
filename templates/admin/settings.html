@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Settings{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-white">Panel Settings</h1>
+    <p class="text-sm text-gray-500">Global configuration for the RPX Panel.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 space-y-8">
+        <div class="card p-8">
+            <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-6">General Configuration</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Panel Name</label>
+                    <input type="text" value="RPX Panel" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Default Node</label>
+                        <select class="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                            <option>Python Node - US</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Currency</label>
+                        <select class="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                            <option>USD ($)</option>
+                            <option>EUR (€)</option>
+                            <option>GBP (£)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button class="btn-primary px-8">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-8 border-blue-500/20 bg-blue-500/5">
+            <h3 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-6">API Configuration</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">JWT Secret Key</label>
+                    <div class="flex items-center gap-4">
+                        <input type="password" value="rpx_panel_secret_python_777" class="flex-1 bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                        <button class="px-4 py-3 rounded-lg bg-gray-800 text-gray-400 hover:text-white transition-all text-xs font-bold uppercase tracking-widest">Regenerate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-8">
+        <div class="card p-6">
+            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-6">System Information</h3>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">Version</span>
+                    <span class="text-xs font-bold text-blue-400">2.0.0-stable</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">Environment</span>
+                    <span class="text-xs font-bold text-green-500 uppercase">Production</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">Database</span>
+                    <span class="text-xs text-gray-300">SQLite 3.x</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

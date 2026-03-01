@@ -190,6 +190,7 @@ def server_settings(current_user, id):
     return render_template('server/settings.html', user=current_user, container=container)
 
 @app.route('/admin')
+@app.route('/admin/')
 @token_required
 def admin_dashboard(current_user):
     if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
@@ -204,6 +205,11 @@ def admin_users(current_user):
     db.close()
     return render_template('admin/users.html', user=current_user, users=users)
 
+@app.route('/account')
+@token_required
+def account_settings(current_user):
+    return render_template('account.html', user=current_user)
+
 @app.route('/admin/nodes')
 @token_required
 def admin_nodes(current_user):
@@ -212,6 +218,16 @@ def admin_nodes(current_user):
     nodes = db.execute("SELECT * FROM nodes").fetchall()
     db.close()
     return render_template('admin/nodes.html', user=current_user, nodes=nodes)
+
+@app.route('/admin/nodes/<int:id>')
+@token_required
+def admin_node_details(current_user, id):
+    if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
+    db = get_db()
+    node = db.execute("SELECT * FROM nodes WHERE id = ?", (id,)).fetchone()
+    servers = db.execute("SELECT * FROM containers WHERE node_id = ?", (id,)).fetchall()
+    db.close()
+    return render_template('admin/node_details.html', user=current_user, node=node, servers=servers)
 
 @app.route('/admin/servers')
 @token_required
@@ -237,9 +253,6 @@ def billing(current_user):
 @token_required
 def referral(current_user):
     return render_template('referral.html', user=current_user)
-@token_required
-def referral(current_user):
-    return render_template('referral.html', user=current_user)
 
 # --- API ---
 
@@ -250,10 +263,17 @@ def api_register():
     ref_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     try:
         db = get_db()
-        db.execute("INSERT INTO users (email, password, referral_code) VALUES (?, ?, ?)", (data['email'], hashed_pw, ref_code))
+        cursor = db.execute("INSERT INTO users (email, password, referral_code) VALUES (?, ?, ?)", (data['email'], hashed_pw, ref_code))
         db.commit()
+        new_id = cursor.lastrowid
         db.close()
-        return jsonify({"success": True})
+        
+        token = jwt.encode({
+            'id': new_id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, app.config['SECRET_KEY'])
+        session['token'] = token
+        return jsonify({"success": True, "token": token})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -268,6 +288,7 @@ def api_login():
             'id': user['id'],
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
         }, app.config['SECRET_KEY'])
+        session['token'] = token
         return jsonify({"token": token, "user": dict(user)})
     return jsonify({"error": "Invalid credentials"}), 401
 
@@ -363,6 +384,43 @@ def vps_action(current_user, id):
         
     return jsonify({"success": True, "status": new_status})
 
+@app.route('/api/vps/<int:id>/reinstall', methods=['POST'])
+@token_required
+def vps_reinstall(current_user, id):
+    db = get_db()
+    container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
+    
+    if not container:
+        db.close()
+        return jsonify({"error": "VPS not found"}), 404
+    
+    if container['suspended']:
+        db.close()
+        return jsonify({"error": "This VPS is suspended."}), 403
+    
+    db.execute("UPDATE containers SET status = 'stopped' WHERE id = ?", (id,))
+    db.commit()
+    db.close()
+    
+    with open(LOG_FILE, 'a') as f:
+        f.write(f"[{datetime.datetime.now()}] User {current_user['email']} reinstalled VPS {container['name']}\n")
+        
+    return jsonify({"success": True})
+
+@app.route('/api/admin/users/<int:id>/balance', methods=['POST'])
+@token_required
+def admin_add_balance(current_user, id):
+    if current_user['role'] != 'admin': return jsonify({"error": "Unauthorized"}), 403
+    data = request.json
+    amount = float(data.get('amount', 0))
+    
+    db = get_db()
+    db.execute("UPDATE users SET balance = balance + ? WHERE id = ?", (amount, id))
+    db.commit()
+    db.close()
+    
+    return jsonify({"success": True})
+
 @app.route('/api/user/add-balance', methods=['POST'])
 @token_required
 def add_balance(current_user):
@@ -391,6 +449,16 @@ def handle_stats(vps_id):
             })
             socketio.sleep(2)
     socketio.start_background_task(emit_stats)
+
+@app.route('/admin/settings')
+@token_required
+def admin_settings(current_user):
+    if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
+    return render_template('admin/settings.html', user=current_user)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=3000, debug=True)
