@@ -61,6 +61,7 @@ def init_db():
             user_id INTEGER NOT NULL,
             node_id INTEGER NOT NULL,
             status TEXT DEFAULT 'stopped',
+            suspended INTEGER DEFAULT 0,
             ipv4 TEXT,
             cpu INTEGER DEFAULT 1,
             ram INTEGER DEFAULT 512,
@@ -73,6 +74,14 @@ def init_db():
 
         INSERT OR IGNORE INTO nodes (id, name, ip, location) VALUES (1, 'Python Node - US', '127.0.0.1', 'New York');
     """)
+    
+    # Check if admin exists, if not create one
+    admin = db.execute("SELECT * FROM users WHERE email = 'admin@rpxpanel.io'").fetchone()
+    if not admin:
+        hashed_pw = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        db.execute("INSERT INTO users (email, password, role, balance, referral_code) VALUES (?, ?, ?, ?, ?)", 
+                   ('admin@rpxpanel.io', hashed_pw, 'admin', 1000.0, 'ADMIN1'))
+    
     db.commit()
     db.close()
 
@@ -112,11 +121,15 @@ def index():
 
 @app.route('/login')
 def login():
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 @app.route('/register')
 def register():
-    return render_template('register.html')
+    return render_template('auth/register.html')
+
+@app.route('/logout')
+def logout():
+    return redirect(url_for('login'))
 
 @app.route('/dashboard')
 @token_required
@@ -124,42 +137,106 @@ def dashboard(current_user):
     db = get_db()
     containers = db.execute("SELECT * FROM containers WHERE user_id = ?", (current_user['id'],)).fetchall()
     db.close()
-    return render_template('dashboard.html', user=current_user, containers=containers)
+    return render_template('server/index.html', user=current_user, containers=containers)
 
-@app.route('/vps/create')
+@app.route('/server/<int:id>')
 @token_required
-def create_vps(current_user):
-    db = get_db()
-    nodes = db.execute("SELECT * FROM nodes WHERE status = 'online'").fetchall()
-    db.close()
-    return render_template('create_vps.html', user=current_user, nodes=nodes)
-
-@app.route('/vps/<int:id>')
-@token_required
-def vps_details(current_user, id):
+def server_console(current_user, id):
     db = get_db()
     container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
     db.close()
     if not container:
-        return "Not Found", 404
-    return render_template('vps_details.html', user=current_user, container=container)
+        return redirect(url_for('dashboard'))
+    return render_template('server/console.html', user=current_user, container=container)
+
+@app.route('/server/<int:id>/files')
+@token_required
+def server_files(current_user, id):
+    db = get_db()
+    container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
+    db.close()
+    return render_template('server/files.html', user=current_user, container=container)
+
+@app.route('/server/<int:id>/databases')
+@token_required
+def server_databases(current_user, id):
+    db = get_db()
+    container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
+    db.close()
+    return render_template('server/databases.html', user=current_user, container=container)
+
+@app.route('/server/<int:id>/network')
+@token_required
+def server_network(current_user, id):
+    db = get_db()
+    container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
+    db.close()
+    return render_template('server/network.html', user=current_user, container=container)
+
+@app.route('/server/<int:id>/startup')
+@token_required
+def server_startup(current_user, id):
+    db = get_db()
+    container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
+    db.close()
+    return render_template('server/startup.html', user=current_user, container=container)
+
+@app.route('/server/<int:id>/settings')
+@token_required
+def server_settings(current_user, id):
+    db = get_db()
+    container = db.execute("SELECT * FROM containers WHERE id = ? AND user_id = ?", (id, current_user['id'])).fetchone()
+    db.close()
+    return render_template('server/settings.html', user=current_user, container=container)
+
+@app.route('/admin')
+@token_required
+def admin_dashboard(current_user):
+    if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
+    return render_template('admin/index.html', user=current_user)
+
+@app.route('/admin/users')
+@token_required
+def admin_users(current_user):
+    if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
+    db = get_db()
+    users = db.execute("SELECT * FROM users").fetchall()
+    db.close()
+    return render_template('admin/users.html', user=current_user, users=users)
+
+@app.route('/admin/nodes')
+@token_required
+def admin_nodes(current_user):
+    if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
+    db = get_db()
+    nodes = db.execute("SELECT * FROM nodes").fetchall()
+    db.close()
+    return render_template('admin/nodes.html', user=current_user, nodes=nodes)
+
+@app.route('/admin/servers')
+@token_required
+def admin_servers(current_user):
+    if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
+    db = get_db()
+    servers = db.execute("SELECT containers.*, users.email as user_email FROM containers JOIN users ON containers.user_id = users.id").fetchall()
+    db.close()
+    return render_template('admin/servers.html', user=current_user, servers=servers)
+
+@app.route('/vps/create')
+@token_required
+def create_vps(current_user):
+    if current_user['role'] != 'admin': return redirect(url_for('dashboard'))
+    return redirect(url_for('admin_servers'))
 
 @app.route('/billing')
 @token_required
 def billing(current_user):
     return render_template('billing.html', user=current_user)
 
-@app.route('/admin')
-@token_required
-def admin(current_user):
-    if current_user['role'] != 'admin':
-        return redirect(url_for('dashboard'))
-    db = get_db()
-    nodes = db.execute("SELECT * FROM nodes").fetchall()
-    db.close()
-    return render_template('admin.html', user=current_user, nodes=nodes)
-
 @app.route('/referral')
+@token_required
+def referral(current_user):
+    return render_template('referral.html', user=current_user)
 @token_required
 def referral(current_user):
     return render_template('referral.html', user=current_user)
@@ -197,6 +274,8 @@ def api_login():
 @app.route('/api/containers', methods=['POST'])
 @token_required
 def api_create_container(current_user):
+    if current_user['role'] != 'admin':
+        return jsonify({"error": "Only admins can create containers"}), 403
     data = request.json
     ipv4 = f"10.0.0.{random.randint(2, 254)}"
     db = get_db()
@@ -204,7 +283,7 @@ def api_create_container(current_user):
         cursor = db.execute("""
             INSERT INTO containers (name, user_id, node_id, ipv4, cpu, ram, disk, os, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'running')
-        """, (data['name'], current_user['id'], data['node_id'], ipv4, data['cpu'], data['ram'], data['disk'], data['os']))
+        """, (data['name'], data['user_id'], data['node_id'], ipv4, data['cpu'], data['ram'], data['disk'], data['os']))
         db.commit()
         new_id = cursor.lastrowid
         db.close()
@@ -212,6 +291,28 @@ def api_create_container(current_user):
     except Exception as e:
         db.close()
         return jsonify({"error": str(e)}), 400
+
+@app.route('/api/admin/containers/<int:id>/suspend', methods=['POST'])
+@token_required
+def api_suspend_container(current_user, id):
+    if current_user['role'] != 'admin': return jsonify({"error": "Unauthorized"}), 403
+    data = request.json
+    suspended = 1 if data.get('suspend') else 0
+    db = get_db()
+    db.execute("UPDATE containers SET suspended = ?, status = 'stopped' WHERE id = ?", (suspended, id))
+    db.commit()
+    db.close()
+    return jsonify({"success": True})
+
+@app.route('/api/admin/containers/<int:id>', methods=['DELETE'])
+@token_required
+def api_delete_container(current_user, id):
+    if current_user['role'] != 'admin': return jsonify({"error": "Unauthorized"}), 403
+    db = get_db()
+    db.execute("DELETE FROM containers WHERE id = ?", (id,))
+    db.commit()
+    db.close()
+    return jsonify({"success": True})
 
 @app.route('/api/system/stats')
 @token_required
@@ -247,6 +348,10 @@ def vps_action(current_user, id):
     if not container:
         db.close()
         return jsonify({"error": "VPS not found"}), 404
+    
+    if container['suspended']:
+        db.close()
+        return jsonify({"error": "This VPS is suspended and cannot be managed."}), 403
     
     new_status = 'running' if action in ['start', 'restart'] else 'stopped'
     db.execute("UPDATE containers SET status = ? WHERE id = ?", (new_status, id))

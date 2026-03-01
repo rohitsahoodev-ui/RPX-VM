@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Startup Settings - {{ container.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-8">
+    <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center text-xl text-gray-400">
+            <i class="fas fa-play"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-white">Startup Settings</h1>
+            <p class="text-xs text-gray-500">Configure the startup command and environment variables.</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 space-y-8">
+        <div class="card p-8">
+            <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Startup Command</h3>
+            <div class="p-4 bg-black rounded-lg border border-gray-800 font-mono text-xs text-blue-400 mb-6">
+                python3 server.py --port {{ '{{' }}SERVER_PORT{{ '}}' }}
+            </div>
+            <p class="text-xs text-gray-500 leading-relaxed">
+                This command is automatically generated based on the variables below and cannot be edited directly.
+            </p>
+        </div>
+
+        <div class="card p-8">
+            <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-6">Environment Variables</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Server Port</label>
+                    <input type="text" value="8080" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                    <p class="text-[10px] text-gray-600 mt-2">The port the application will listen on.</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Auto Update</label>
+                    <select class="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                        <option>Enabled</option>
+                        <option>Disabled</option>
+                    </select>
+                    <p class="text-[10px] text-gray-600 mt-2">Automatically update the server on startup.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-8">
+        <div class="card p-6">
+            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-6">Docker Image</h3>
+            <div class="flex items-center gap-4 p-4 bg-gray-900 rounded-lg border border-gray-800">
+                <div class="w-10 h-10 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500">
+                    <i class="fab fa-docker"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-white">python:3.10-slim</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">Official Image</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

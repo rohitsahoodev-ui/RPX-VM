@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Network - {{ container.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-8">
+    <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center text-xl text-gray-400">
+            <i class="fas fa-network-wired"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-white">Network</h1>
+            <p class="text-xs text-gray-500">Manage IP addresses and port forwarding.</p>
+        </div>
+    </div>
+    
+    <button class="btn-primary">
+        <i class="fas fa-plus mr-2"></i> New Port
+    </button>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 bg-gray-900 border-b border-gray-800">
+            <h3 class="text-xs font-bold text-white uppercase tracking-widest">IP Addresses</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg border border-gray-800">
+                <div class="flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-500">
+                        <i class="fas fa-globe text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-white">{{ container.ipv4 }}</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Primary IPv4</p>
+                    </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-[9px] font-bold text-green-500 uppercase tracking-widest">Active</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 bg-gray-900 border-b border-gray-800">
+            <h3 class="text-xs font-bold text-white uppercase tracking-widest">Port Forwarding</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg border border-gray-800">
+                <div class="flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-lg bg-purple-600/10 flex items-center justify-center text-purple-500">
+                        <i class="fas fa-exchange-alt text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-white">80 <i class="fas fa-arrow-right text-[10px] text-gray-500 mx-2"></i> 8080</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">HTTP Traffic</p>
+                    </div>
+                </div>
+                <button class="text-red-500 hover:text-red-400 transition-colors"><i class="fas fa-trash-alt text-xs"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
