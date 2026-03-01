@@ -94,8 +94,18 @@
 
         async function fetchStats() {
             const token = localStorage.getItem('rpx_token');
-            // In a real app, we'd fetch these from the API
-            // For now, we'll just show the UI structure
+            try {
+                const res = await fetch('/api/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById('stat_users').innerText = data.users;
+                document.getElementById('stat_vps').innerText = data.vps;
+                document.getElementById('stat_nodes').innerText = data.nodes;
+                document.getElementById('stat_cpu').innerText = data.cpu + '%';
+            } catch (e) {
+                console.error("Failed to fetch stats", e);
+            }
         }
 
         function logout() {

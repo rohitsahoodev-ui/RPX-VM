@@ -1,3 +1,5 @@
+import threading
+import time
 import os
 import sqlite3
 import json
@@ -7,9 +9,21 @@ import datetime
 import subprocess
 import psutil
 import shlex
+import logging
 from flask import Flask, request, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
 from functools import wraps
+
+# --- LOGGING ---
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler("rpx_panel.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
 SECRET_KEY = "rpx_super_secret_key_777"
@@ -77,11 +91,13 @@ def init_db():
         hashed = bcrypt.hashpw("admin123".encode('utf-8'), bcrypt.gensalt())
         cursor.execute("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", 
                        ('admin@rpxpanel.io', hashed, 'admin'))
+        logger.info("Default admin user created.")
     
     conn.commit()
     conn.close()
 
 init_db()
+logger.info("Database initialized.")
 
 # --- MIDDLEWARE ---
 def token_required(f):
@@ -103,6 +119,102 @@ def token_required(f):
             return jsonify({'message': 'Token is invalid!'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
+
+# --- BACKGROUND TASKS ---
+def update_statuses():
+    while True:
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # Update Node statuses (simple ping for now)
+            cursor.execute("SELECT id, ip FROM nodes")
+            nodes = cursor.fetchall()
+            for node_id, ip in nodes:
+                # Real ping or API check would go here
+                status = 'online' # Assume online for local node
+                cursor.execute("UPDATE nodes SET status=? WHERE id=?", (status, node_id))
+            
+            # Update Container statuses
+            cursor.execute("SELECT id, name FROM containers")
+            containers = cursor.fetchall()
+            for cont_id, name in containers:
+                try:
+                    # REAL LXC STATUS CHECK
+                    cmd = f"lxc-info -n {name} -s"
+                    output = subprocess.check_output(shlex.split(cmd)).decode()
+                    status = output.split(":")[1].strip().lower()
+                    cursor.execute("UPDATE containers SET status=? WHERE id=?", (status, cont_id))
+                except:
+                    cursor.execute("UPDATE containers SET status='unknown' WHERE id=?", (cont_id,))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Status update error: {e}")
+        time.sleep(10)
+
+# --- ROUTES: STATS ---
+@app.route('/api/stats', methods=['GET'])
+@token_required
+def get_stats(current_user):
+    # REAL SYSTEM STATS
+    cpu = psutil.cpu_percent()
+    ram = psutil.virtual_memory().percent
+    disk = psutil.disk_usage('/').percent
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM users")
+    users_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM containers")
+    vps_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM nodes")
+    nodes_count = cursor.fetchone()[0]
+    conn.close()
+    
+    return jsonify({
+        'cpu': cpu,
+        'ram': ram,
+        'disk': disk,
+        'users': users_count,
+        'vps': vps_count,
+        'nodes': nodes_count
+    })
+
+# --- ROUTES: CONTAINER ACTIONS ---
+@app.route('/api/containers/<int:id>/action', methods=['POST'])
+@token_required
+def container_action(current_user, id):
+    action = request.json.get('action')
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM containers WHERE id=?", (id,))
+    container = cursor.fetchone()
+    if not container:
+        conn.close()
+        return jsonify({'message': 'Container not found'}), 404
+    
+    name = container[0]
+    try:
+        if action == 'start':
+            subprocess.Popen(shlex.split(f"lxc-start -n {name}"))
+        elif action == 'stop':
+            subprocess.Popen(shlex.split(f"lxc-stop -n {name}"))
+        elif action == 'restart':
+            subprocess.Popen(shlex.split(f"lxc-stop -n {name}"))
+            time.sleep(2)
+            subprocess.Popen(shlex.split(f"lxc-start -n {name}"))
+        elif action == 'delete':
+            subprocess.Popen(shlex.split(f"lxc-destroy -n {name}"))
+            cursor.execute("DELETE FROM containers WHERE id=?", (id,))
+            conn.commit()
+        
+        conn.close()
+        return jsonify({'message': f'Action {action} initiated'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'message': str(e)}), 500
 
 # --- ROUTES: AUTH ---
 @app.route('/api/auth/login', methods=['POST'])
@@ -221,4 +333,10 @@ def handle_console(data):
 if __name__ == '__main__':
     if not os.path.exists(STATIC_DIR):
         os.makedirs(STATIC_DIR)
+    
+    # Start status update thread
+    threading.Thread(target=update_statuses, daemon=True).start()
+    logger.info("Background status updater started.")
+    
+    logger.info("RPX PANEL – V1 starting on port 3000...")
     socketio.run(app, host='0.0.0.0', port=3000)

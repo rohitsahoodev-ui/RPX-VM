@@ -4,7 +4,8 @@
   "description": "LXC Based VPS Hosting Control Panel",
   "main": "RPX.py",
   "scripts": {
-    "start": "python3 RPX.py"
+    "start": "python3 RPX.py",
+    "lint": "python3 -m py_compile RPX.py"
   },
   "dependencies": {
     "flask": "^3.0.0",
