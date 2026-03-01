@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview | RPX Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0a0b0d; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 18, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { width: 280px; border-right: 1px solid rgba(255,255,255,0.05); }
+        .nav-item { display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 0.75rem; color: #94a3b8; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-item.active { background: #2563eb; color: #fff; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <div class="sidebar p-6 flex flex-col">
+        <div class="mb-10 px-2">
+            <h1 class="text-xl font-bold text-white tracking-tighter">RPX PANEL</h1>
+        </div>
+
+        <nav class="space-y-2 flex-1">
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4 px-2">Management</p>
+            <a href="index.html" class="nav-item active"><i class="fas fa-th-large mr-3"></i> Overview</a>
+            <a href="servers.html" class="nav-item"><i class="fas fa-server mr-3"></i> Servers</a>
+            <a href="billing.html" class="nav-item"><i class="fas fa-credit-card mr-3"></i> Billing</a>
+
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-8 mb-4 px-2">Administrative</p>
+            <a href="users.html" class="nav-item"><i class="fas fa-users mr-3"></i> Users</a>
+            <a href="nodes.html" class="nav-item"><i class="fas fa-network-wired mr-3"></i> Nodes</a>
+            <a href="locations.html" class="nav-item"><i class="fas fa-map-marker-alt mr-3"></i> Locations</a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog mr-3"></i> Settings</a>
+        </nav>
+
+        <div class="mt-auto">
+            <button onclick="logout()" class="nav-item w-full text-left text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt mr-3"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Administrative Overview</h2>
+                <p class="text-gray-500 text-sm">Real-time infrastructure health and statistics.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="px-4 py-2 glass rounded-lg text-xs font-bold text-green-400 uppercase tracking-widest">System Online</div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Users</p>
+                <h3 id="stat_users" class="text-3xl font-bold text-white">0</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total VPS</p>
+                <h3 id="stat_vps" class="text-3xl font-bold text-white">0</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nodes Online</p>
+                <h3 id="stat_nodes" class="text-3xl font-bold text-white">0</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Global CPU</p>
+                <h3 id="stat_cpu" class="text-3xl font-bold text-white">0%</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 glass rounded-2xl p-8">
+                <h4 class="text-sm font-bold text-white uppercase tracking-widest mb-6">Recent Activity</h4>
+                <div id="activity_log" class="space-y-4">
+                    <p class="text-gray-500 text-sm italic">No recent activity recorded.</p>
+                </div>
+            </div>
+            <div class="glass rounded-2xl p-8">
+                <h4 class="text-sm font-bold text-white uppercase tracking-widest mb-6">System Info</h4>
+                <div class="space-y-4 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Version</span> <span class="text-blue-400 font-bold">1.0.0-PRO</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Kernel</span> <span class="text-gray-300">Linux 5.15+</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">DB Engine</span> <span class="text-gray-300">SQLite 3</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if(!localStorage.getItem('rpx_token')) window.location.href = '/login.html';
+
+        async function fetchStats() {
+            const token = localStorage.getItem('rpx_token');
+            // In a real app, we'd fetch these from the API
+            // For now, we'll just show the UI structure
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        fetchStats();
+    </script>
+</body>
+</html>

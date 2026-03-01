@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodes | RPX Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0a0b0d; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 18, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { width: 280px; border-right: 1px solid rgba(255,255,255,0.05); }
+        .nav-item { display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 0.75rem; color: #94a3b8; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-item.active { background: #2563eb; color: #fff; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <div class="sidebar p-6 flex flex-col">
+        <div class="mb-10 px-2">
+            <h1 class="text-xl font-bold text-white tracking-tighter">RPX PANEL</h1>
+        </div>
+
+        <nav class="space-y-2 flex-1">
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4 px-2">Management</p>
+            <a href="index.html" class="nav-item"><i class="fas fa-th-large mr-3"></i> Overview</a>
+            <a href="servers.html" class="nav-item"><i class="fas fa-server mr-3"></i> Servers</a>
+            <a href="billing.html" class="nav-item"><i class="fas fa-credit-card mr-3"></i> Billing</a>
+
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-8 mb-4 px-2">Administrative</p>
+            <a href="users.html" class="nav-item"><i class="fas fa-users mr-3"></i> Users</a>
+            <a href="nodes.html" class="nav-item active"><i class="fas fa-network-wired mr-3"></i> Nodes</a>
+            <a href="locations.html" class="nav-item"><i class="fas fa-map-marker-alt mr-3"></i> Locations</a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog mr-3"></i> Settings</a>
+        </nav>
+
+        <div class="mt-auto">
+            <button onclick="logout()" class="nav-item w-full text-left text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt mr-3"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Node Management</h2>
+                <p class="text-gray-500 text-sm">Connect and monitor your physical LXC hosts.</p>
+            </div>
+            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-blue-900/20">
+                <i class="fas fa-plus mr-2"></i> Add Node
+            </button>
+        </header>
+
+        <div class="glass rounded-2xl overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-900/50 border-b border-gray-800">
+                    <tr>
+                        <th class="p-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Node Name</th>
+                        <th class="p-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Location</th>
+                        <th class="p-6 text-xs font-bold text-gray-500 uppercase tracking-widest">IP Address</th>
+                        <th class="p-6 text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
+                        <th class="p-6 text-xs font-bold text-gray-500 uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="node_list">
+                    <!-- Nodes will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+        <div class="glass w-full max-w-2xl p-8 rounded-2xl">
+            <h3 class="text-xl font-bold text-white mb-6">Add New Node</h3>
+            <form id="nodeForm" class="grid grid-cols-2 gap-6">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Node Name</label>
+                    <input type="text" id="name" required class="w-full bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all" placeholder="Python Node - US">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Location</label>
+                    <select id="location_id" required class="w-full bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all">
+                        <!-- Locations will be loaded here -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">IP Address</label>
+                    <input type="text" id="ip" required class="w-full bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all" placeholder="10.0.0.187">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">FQDN</label>
+                    <input type="text" id="fqdn" required class="w-full bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all" placeholder="node1.rpxpanel.io">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">API Key</label>
+                    <input type="password" id="api_key" required class="w-full bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all" placeholder="••••••••">
+                </div>
+                <div class="col-span-2 flex gap-4 mt-4">
+                    <button type="button" onclick="closeModal()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 rounded-xl transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all">Create Node</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('rpx_token');
+        if(!token) window.location.href = '/login.html';
+
+        async function fetchNodes() {
+            const res = await fetch('/api/nodes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const list = document.getElementById('node_list');
+            list.innerHTML = data.map(node => `
+                <tr class="border-b border-gray-800 hover:bg-white/5 transition-all">
+                    <td class="p-6 text-sm font-bold text-white">${node.name}</td>
+                    <td class="p-6 text-sm text-gray-400">${node.location}</td>
+                    <td class="p-6 text-sm text-gray-400 font-mono">${node.ip}</td>
+                    <td class="p-6">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${node.status === 'online' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}">
+                            ${node.status}
+                        </span>
+                    </td>
+                    <td class="p-6 text-right">
+                        <button class="text-gray-500 hover:text-white transition-all"><i class="fas fa-ellipsis-v"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function fetchLocations() {
+            const res = await fetch('/api/locations', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const select = document.getElementById('location_id');
+            select.innerHTML = data.map(loc => `<option value="${loc.id}">${loc.name}</option>`).join('');
+        }
+
+        document.getElementById('nodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('name').value,
+                location_id: document.getElementById('location_id').value,
+                ip: document.getElementById('ip').value,
+                fqdn: document.getElementById('fqdn').value,
+                api_key: document.getElementById('api_key').value
+            };
+
+            const res = await fetch('/api/nodes', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                closeModal();
+                fetchNodes();
+            }
+        });
+
+        function openModal() { 
+            fetchLocations();
+            document.getElementById('modal').classList.remove('hidden'); 
+        }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+        function logout() { localStorage.clear(); window.location.href = '/login.html'; }
+
+        fetchNodes();
+    </script>
+</body>
+</html>

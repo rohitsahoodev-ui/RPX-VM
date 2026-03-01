@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | RPX Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0a0b0d; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 18, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { width: 280px; border-right: 1px solid rgba(255,255,255,0.05); }
+        .nav-item { display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 0.75rem; color: #94a3b8; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-item.active { background: #2563eb; color: #fff; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <div class="sidebar p-6 flex flex-col">
+        <div class="mb-10 px-2">
+            <h1 class="text-xl font-bold text-white tracking-tighter">RPX PANEL</h1>
+        </div>
+
+        <nav class="space-y-2 flex-1">
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4 px-2">Management</p>
+            <a href="index.html" class="nav-item"><i class="fas fa-th-large mr-3"></i> Overview</a>
+            <a href="servers.html" class="nav-item"><i class="fas fa-server mr-3"></i> Servers</a>
+            <a href="billing.html" class="nav-item"><i class="fas fa-credit-card mr-3"></i> Billing</a>
+
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-8 mb-4 px-2">Administrative</p>
+            <a href="users.html" class="nav-item"><i class="fas fa-users mr-3"></i> Users</a>
+            <a href="nodes.html" class="nav-item"><i class="fas fa-network-wired mr-3"></i> Nodes</a>
+            <a href="locations.html" class="nav-item"><i class="fas fa-map-marker-alt mr-3"></i> Locations</a>
+            <a href="settings.html" class="nav-item active"><i class="fas fa-cog mr-3"></i> Settings</a>
+        </nav>
+
+        <div class="mt-auto">
+            <button onclick="logout()" class="nav-item w-full text-left text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt mr-3"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 p-10 overflow-y-auto">
+        <header class="mb-10">
+            <h2 class="text-2xl font-bold text-white">Panel Settings</h2>
+            <p class="text-gray-500 text-sm">Global configuration for the RPX infrastructure.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <div class="glass p-8 rounded-2xl">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-6">General Configuration</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Panel Name</label>
+                            <input type="text" value="RPX Panel" class="w-full bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Support URL</label>
+                            <input type="text" value="https://discord.gg/rpx" class="w-full bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-all">
+                        </div>
+                        <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl transition-all">Save Changes</button>
+                    </div>
+                </div>
+
+                <div class="glass p-8 rounded-2xl border-blue-500/20 bg-blue-500/5">
+                    <h3 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-6">Security & API</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">JWT Secret Key</label>
+                            <div class="flex gap-4">
+                                <input type="password" value="rpx_super_secret_key_777" readonly class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm text-gray-500">
+                                <button class="bg-gray-800 hover:bg-gray-700 text-white px-6 rounded-xl font-bold text-xs uppercase tracking-widest">Regenerate</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div class="glass p-8 rounded-2xl">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-6">System Information</h4>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-500">Version</span> <span class="text-blue-400 font-bold">1.0.0-PRO</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Environment</span> <span class="text-green-500 font-bold uppercase">Production</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Database</span> <span class="text-gray-300">SQLite 3.x</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('rpx_token');
+        if(!token) window.location.href = '/login.html';
+        function logout() { localStorage.clear(); window.location.href = '/login.html'; }
+    </script>
+</body>
+</html>

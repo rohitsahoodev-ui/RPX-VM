@@ -1,6 +1,6 @@
 {
-  "name": "RPX PANEL",
-  "description": "Enterprise-grade LXC Container VPS Control Panel with real-time monitoring, billing, and advanced management features.",
+  "name": "RPX PANEL – V1",
+  "description": "Real-time LXC-based VPS Hosting Control Panel with multi-node support and live console.",
   "requestFramePermissions": [
     "camera",
     "microphone",

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referrals | RPX Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0a0b0d; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 18, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { width: 280px; border-right: 1px solid rgba(255,255,255,0.05); }
+        .nav-item { display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 0.75rem; color: #94a3b8; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-item.active { background: #2563eb; color: #fff; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <div class="sidebar p-6 flex flex-col">
+        <div class="mb-10 px-2">
+            <h1 class="text-xl font-bold text-white tracking-tighter">RPX PANEL</h1>
+        </div>
+
+        <nav class="space-y-2 flex-1">
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4 px-2">Management</p>
+            <a href="index.html" class="nav-item"><i class="fas fa-th-large mr-3"></i> Overview</a>
+            <a href="servers.html" class="nav-item"><i class="fas fa-server mr-3"></i> Servers</a>
+            <a href="billing.html" class="nav-item"><i class="fas fa-credit-card mr-3"></i> Billing</a>
+
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-8 mb-4 px-2">Administrative</p>
+            <a href="users.html" class="nav-item"><i class="fas fa-users mr-3"></i> Users</a>
+            <a href="nodes.html" class="nav-item"><i class="fas fa-network-wired mr-3"></i> Nodes</a>
+            <a href="locations.html" class="nav-item"><i class="fas fa-map-marker-alt mr-3"></i> Locations</a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog mr-3"></i> Settings</a>
+        </nav>
+
+        <div class="mt-auto">
+            <button onclick="logout()" class="nav-item w-full text-left text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt mr-3"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 p-10 overflow-y-auto">
+        <header class="mb-10">
+            <h2 class="text-2xl font-bold text-white">Referral Program</h2>
+            <p class="text-gray-500 text-sm">Earn 10% of every payment made by your referrals.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <div class="glass p-8 rounded-2xl border-purple-500/20 bg-purple-500/5">
+                    <h4 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-4">Your Referral Link</h4>
+                    <div class="flex gap-4">
+                        <input type="text" value="https://rpxpanel.io/ref/admin" readonly class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-sm text-gray-300">
+                        <button class="bg-purple-600 hover:bg-purple-500 text-white px-8 rounded-xl font-bold text-sm transition-all">Copy Link</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="glass p-8 rounded-2xl">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Referrals</p>
+                        <h3 class="text-3xl font-bold text-white">0</h3>
+                    </div>
+                    <div class="glass p-8 rounded-2xl">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Earnings</p>
+                        <h3 class="text-3xl font-bold text-green-400">$0.00</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div class="glass p-8 rounded-2xl">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-6">How it works</h4>
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0">1</div>
+                            <p class="text-sm text-gray-400">Share your unique referral link with your friends or community.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0">2</div>
+                            <p class="text-sm text-gray-400">They sign up and deploy their first high-performance VPS.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0">3</div>
+                            <p class="text-sm text-gray-400">You receive 10% of their monthly spending as credits.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('rpx_token');
+        if(!token) window.location.href = '/login.html';
+        function logout() { localStorage.clear(); window.location.href = '/login.html'; }
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servers | RPX Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0a0b0d; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 18, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { width: 280px; border-right: 1px solid rgba(255,255,255,0.05); }
+        .nav-item { display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 0.75rem; color: #94a3b8; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-item.active { background: #2563eb; color: #fff; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <div class="sidebar p-6 flex flex-col">
+        <div class="mb-10 px-2">
+            <h1 class="text-xl font-bold text-white tracking-tighter">RPX PANEL</h1>
+        </div>
+
+        <nav class="space-y-2 flex-1">
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4 px-2">Management</p>
+            <a href="index.html" class="nav-item"><i class="fas fa-th-large mr-3"></i> Overview</a>
+            <a href="servers.html" class="nav-item active"><i class="fas fa-server mr-3"></i> Servers</a>
+            <a href="billing.html" class="nav-item"><i class="fas fa-credit-card mr-3"></i> Billing</a>
+
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-8 mb-4 px-2">Administrative</p>
+            <a href="users.html" class="nav-item"><i class="fas fa-users mr-3"></i> Users</a>
+            <a href="nodes.html" class="nav-item"><i class="fas fa-network-wired mr-3"></i> Nodes</a>
+            <a href="locations.html" class="nav-item"><i class="fas fa-map-marker-alt mr-3"></i> Locations</a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog mr-3"></i> Settings</a>
+        </nav>
+
+        <div class="mt-auto">
+            <button onclick="logout()" class="nav-item w-full text-left text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt mr-3"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Server Management</h2>
+                <p class="text-gray-500 text-sm">Manage and monitor your virtual private servers.</p>
+            </div>
+            <a href="create-server.html" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-blue-900/20">
+                <i class="fas fa-plus mr-2"></i> Create Server
+            </a>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="server_list">
+            <!-- Servers will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('rpx_token');
+        if(!token) window.location.href = '/login.html';
+
+        async function fetchServers() {
+            const res = await fetch('/api/containers', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const list = document.getElementById('server_list');
+            
+            if (data.length === 0) {
+                list.innerHTML = `
+                    <div class="col-span-full glass p-12 rounded-2xl text-center">
+                        <i class="fas fa-server text-4xl text-gray-700 mb-4"></i>
+                        <p class="text-gray-500">No servers found. Create your first VPS to get started.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = data.map(server => `
+                <div class="glass p-8 rounded-2xl hover:border-blue-500/50 transition-all border border-transparent">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${server.status === 'running' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}">
+                            ${server.status}
+                        </span>
+                    </div>
+                    <h4 class="text-lg font-bold text-white mb-1">${server.name}</h4>
+                    <p class="text-xs text-gray-500 font-mono mb-6">10.0.0.187</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-gray-900/50 p-3 rounded-xl">
+                            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">CPU</p>
+                            <p class="text-sm font-bold text-white">${server.cpu} Cores</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-3 rounded-xl">
+                            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">RAM</p>
+                            <p class="text-sm font-bold text-white">${server.ram} MB</p>
+                        </div>
+                    </div>
+
+                    <a href="console.html?name=${server.name}" class="block text-center bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all text-sm">
+                        Manage Server
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '/login.html'; }
+        fetchServers();
+    </script>
+</body>
+</html>
